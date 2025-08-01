@@ -1,4 +1,6 @@
-# React + Vite
+B11-A10
+frontend: https://personal-test-f501d.web.app/ 
+backend: https://api-p6cuuiuk3q-uc.a.run.app/# React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
