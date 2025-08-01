@@ -76,7 +76,7 @@ app.get('/', (req, res) => res.send('HobbyHub API v2'))
 
 app.post('/api/groups', async (req, res) => {
   try {
-    // Ensure isActive is always set to true by default
+  
     const groupData = { ...req.body, isActive: req.body.isActive ?? true }
     const result = await groupsCol.insertOne(groupData)
     res.json({ success: true, id: result.insertedId })
@@ -148,12 +148,11 @@ app.post('/api/joinGroup', async (req, res) => {
   try {
     const group = await groupsCol.findOne({ _id: new ObjectId(groupId) })
     if (!group) return res.status(404).json({ message: 'Group not found' })
-    // Only block joining if isActive is explicitly set to false
-    // This allows joining both for groups without the property and those with isActive=true
+
     if (group.isActive === false)
       return res.status(400).json({ message: 'Group is no longer active' })
 
-    // Check for joined users with different possible formats of groupId
+
     const joinedCount = await joinedCol.countDocuments({
       $or: [
         { groupId },
@@ -165,7 +164,7 @@ app.post('/api/joinGroup', async (req, res) => {
     if (joinedCount >= group.maxMembers)
       return res.status(400).json({ message: 'Group is full' })
 
-    // Check if already joined with different possible formats of groupId
+ 
     const alreadyJoined = await joinedCol.findOne({
       $or: [
         { groupId, email },
@@ -177,7 +176,7 @@ app.post('/api/joinGroup', async (req, res) => {
     if (alreadyJoined)
       return res.status(400).json({ message: 'Already joined' })
 
-    // Always store groupId as string to maintain consistency
+
     await joinedCol.insertOne({
       groupId: groupId.toString(),
       email,
@@ -197,7 +196,7 @@ app.get('/api/hasJoined', async (req, res) => {
   if (!groupId || !email)
     return res.status(400).json({ message: 'groupId & email required' })
   try {
-    // Check for different possible formats of groupId
+
     const joined = await joinedCol.findOne({
       $or: [
         { groupId, email },
@@ -225,7 +224,7 @@ app.get('/api/joinedGroups', async (req, res) => {
   try {
     console.log(`Fetching joined users for group ${groupId}`)
 
-    // Check if the groupId might be stored in different formats
+
     const joinedUsers = await joinedCol
       .find({
         $or: [
@@ -255,23 +254,23 @@ app.get('/api/joinedCount/:groupId', async (req, res) => {
   }
 })
 
-// Debug endpoint to help diagnose join issues
+
 app.get('/api/debugJoinStatus/:groupId', async (req, res) => {
   try {
     const { groupId } = req.params
     const { email } = req.query
 
-    // Get all joined users for this group
+
     const joinedUsers = await joinedCol.find({ groupId }).toArray()
 
-    // Check if specific user has joined (if email provided)
+
     let userJoinStatus = null
     if (email) {
       const userJoined = await joinedCol.findOne({ groupId, email })
       userJoinStatus = { hasJoined: !!userJoined, joinRecord: userJoined }
     }
 
-    // Get group details
+
     const group = await groupsCol.findOne({ _id: new ObjectId(groupId) })
 
     res.json({
